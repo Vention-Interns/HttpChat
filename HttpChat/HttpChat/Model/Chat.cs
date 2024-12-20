@@ -4,6 +4,7 @@ public class Chat
 {
     public Guid Id { get; set; } = Guid.NewGuid();
     public string Name { get; set; }
+    
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     
     public List<Message> Messages { get; set; } = new List<Message>();
