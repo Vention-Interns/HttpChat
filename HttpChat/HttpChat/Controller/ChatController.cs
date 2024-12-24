@@ -1,6 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using HttpChat.dto;
-using HttpChat.Service;
+using HttpChat.Service.ChatService;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HttpChat.Controller
@@ -9,9 +9,9 @@ namespace HttpChat.Controller
     [Route("api/[controller]")]
     public class ChatController : ControllerBase
     {
-        private readonly IChatService _chatService;
+        private readonly IMessageService _chatService;
 
-        public ChatController(IChatService chatService)
+        public ChatController(IMessageService chatService)
         {
             _chatService = chatService;
         }
@@ -31,8 +31,6 @@ namespace HttpChat.Controller
             ClientMessageQueues.TryAdd(request.ClientId, new Queue<string>());
             return await Task.FromResult(Ok(new { Status = "User registered successfully." }));
         }
-        
-        
 
         [HttpPost("send")]
         public async Task<IActionResult> SendMessage([FromBody] MessageRequestDto message)

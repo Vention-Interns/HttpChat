@@ -3,5 +3,4 @@
 public class RegisterUserRequest
 {
     public string ClientId { get; set; }
-    
 }

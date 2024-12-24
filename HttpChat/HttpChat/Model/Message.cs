@@ -2,11 +2,13 @@
 
 public class Message
 {
-    public Guid Id { get; set; }
-    
+    public int Id { get; set; }
     public string Content { get; set; }
+    public DateTime SentAt { get; set; } = DateTime.UtcNow;
     
-    public string ClientId { get; set; }
+    public int UserId { get; set; }
+    public int ChatId { get; set; }
     
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public User Sender { get; set; }
+    public Chat Chat { get; set; }
 }

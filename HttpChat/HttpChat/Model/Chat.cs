@@ -2,20 +2,11 @@
 
 public class Chat
 {
-    public Guid Id { get; set; } = Guid.NewGuid();
+    public int Id { get; set; }
     public string Name { get; set; }
-    
+    public bool IsGroupChat { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     
-    public List<Message> Messages { get; set; } = new List<Message>();
-
-    public void AddMessage(Message message)
-    {
-        Messages.Add(message);
-    }
-
-    public void RemoveMessage(Message message)
-    {
-        Messages.Remove(message);
-    }
+    public ICollection<User> Participants { get; set; } = new List<User>();
+    public ICollection<Message> Messages { get; set; }
 }

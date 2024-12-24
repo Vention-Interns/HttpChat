@@ -3,16 +3,16 @@ using HttpChat.persistence;
 
 namespace HttpChat.Service.ChatService;
 
-public class ChatService : IChatService
+public class MessageService : IMessageService
 {
-    private readonly AppDbContext _appDbContext;
+    private readonly ChatDbContext _appDbContext;
 
-    public ChatService(AppDbContext appDbContext)
+    public MessageService(ChatDbContext appDbContext)
     {
         _appDbContext = appDbContext;
     }
 
-    public void SaveLocalMessages(List<MessageRequestDto> messages)
+    public void SaveLocalMessages(IEnumerable<MessageRequestDto> messages)
     {
         var messageEntities =
             messages.Select(MessageRequestDto.ToEntity).ToList();
