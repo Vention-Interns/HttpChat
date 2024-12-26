@@ -14,12 +14,12 @@ public class MessageService : IMessageService
 
     public void SaveLocalMessages(IEnumerable<MessageRequestDto> messages)
     {
-        var messageEntities =
-            messages.Select(MessageRequestDto.ToEntity).ToList();
-        
+        var messageEntities = messages.Select(MessageRequestDto.ToEntity).ToList();
+
+        Console.WriteLine("Recived Messages " + messageEntities);
+
         _appDbContext.Messages.AddRange(messageEntities);
-        
+
         _appDbContext.SaveChanges();
     }
-    
 }

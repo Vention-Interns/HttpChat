@@ -1,3 +1,4 @@
+using HttpChat.Controller;
 using HttpChat.persistence;
 using HttpChat.Service;
 using HttpChat.Service.ChatService;
@@ -13,6 +14,9 @@ builder.Services.AddDbContext<ChatDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
     
 builder.Services.AddScoped<IMessageService, MessageService>();
+
+builder.Services.AddHostedService<CleanupService>();
+
 
 builder.Services.AddCors(options =>
 {

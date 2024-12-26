@@ -17,8 +17,8 @@ public class MessageResponseDto
             Id = message.Id,
             Content = message.Content,
             SentAt = message.SentAt,
-            SenderUsername = message.Sender?.Username,
-            ChatId = message.ChatId
+            // SenderUsername = message.Sender?.Username,
+            // ChatId = message.ChatId
         };
     }
 }

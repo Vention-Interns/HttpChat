@@ -6,9 +6,9 @@ public class Message
     public string Content { get; set; }
     public DateTime SentAt { get; set; } = DateTime.UtcNow;
     
-    public int UserId { get; set; }
-    public int ChatId { get; set; }
-    
-    public User Sender { get; set; }
-    public Chat Chat { get; set; }
+    // public int UserId { get; set; }
+    // public int ChatId { get; set; }
+    //
+    // public User Sender { get; set; }
+    // public Chat Chat { get; set; }
 }

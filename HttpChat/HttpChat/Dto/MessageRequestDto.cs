@@ -13,8 +13,8 @@ public class MessageRequestDto
         var message = new Message
         {
             Content = messageRequestDto.Content,
-            ChatId = Int32.Parse(messageRequestDto.ChatId),
-            UserId = int.TryParse(messageRequestDto.ClientId, out var userId) ? userId : 0,
+            // ChatId = Int32.Parse(messageRequestDto.ChatId),
+            // UserId = int.TryParse(messageRequestDto.ClientId, out var userId) ? userId : 0,
             SentAt = DateTime.UtcNow
         };
         return message;
