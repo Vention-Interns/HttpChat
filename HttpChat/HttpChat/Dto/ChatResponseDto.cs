@@ -22,7 +22,6 @@ public class ChatResponseDto
             Name = chat.Name,
             IsGroupChat = chat.IsGroupChat,
             CreatedAt = chat.CreatedAt,
-            Participants = chat.Participants?.Select(p => p.Username).ToList() ?? new List<string>(),
             Messages = chat.Messages?.Select(MessageResponseDto.ToDto).ToList() ?? new List<MessageResponseDto>()
         };
     }

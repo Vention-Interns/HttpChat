@@ -1,16 +1,13 @@
-﻿namespace HttpChat.Model;
+﻿using Microsoft.AspNetCore.Identity;
+using System;
+using System.Collections.Generic;
 
-public class User
+namespace HttpChat.Model
 {
-    public int Id { get; set; }
-    public string Username { get; set; }
-    
-    public string Email { get; set; }
-    
-    public string PasswordHash { get; set; }
-    
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    
-    public ICollection<Chat> Chats { get; set; }
-    public ICollection<Message> Messages { get; set; }
+    public class User : IdentityUser
+    {
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public ICollection<Chat> Chats { get; set; }
+        public ICollection<Message> Messages { get; set; }
+    }
 }
