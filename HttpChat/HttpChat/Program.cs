@@ -15,8 +15,6 @@ builder.Services.AddDbContext<ChatDbContext>(options =>
     
 builder.Services.AddScoped<IMessageService, MessageService>();
 
-builder.Services.AddHostedService<CleanupService>();
-
 
 builder.Services.AddCors(options =>
 {
