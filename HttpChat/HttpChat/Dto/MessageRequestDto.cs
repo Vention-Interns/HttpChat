@@ -17,6 +17,7 @@ public class MessageRequestDto
             // UserId = int.TryParse(messageRequestDto.ClientId, out var userId) ? userId : 0,
             SentAt = DateTime.UtcNow
         };
+
         return message;
     }
 }
