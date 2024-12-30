@@ -1,8 +1,6 @@
 using System.Text;
-using HttpChat.Controller;
 using HttpChat.Model;
 using HttpChat.persistence;
-using HttpChat.Service;
 using HttpChat.Service.ChatService;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;

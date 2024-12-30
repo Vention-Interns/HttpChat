@@ -5,23 +5,29 @@ function App() {
     const [messages, setMessages] = useState([]);
     const [messageInput, setMessageInput] = useState("");
     const [clientIdInput, setClientIdInput] = useState("");
+    const [chatIdInput, setChatIdInput] = useState("");
     const [activeClientId, setActiveClientId] = useState(null);
+    const [activeChatId, setActiveChatId] = useState(null);
 
     const startChat = async () => {
         const trimmedClientId = clientIdInput.trim();
+        const trimmedChatId = chatIdInput.trim();
 
-        if (!trimmedClientId) {
-            alert("Client ID cannot be empty!");
+        if (!trimmedClientId || !trimmedChatId) {
+            alert("Client ID and Chat ID cannot be empty!");
             return;
         }
 
         try {
-            console.log("Registering user with payload:", { clientId: trimmedClientId });
+            console.log("Registering user with payload:", {
+                clientId: trimmedClientId,
+                chatId: trimmedChatId,
+            });
 
             const response = await fetch("http://localhost:5181/api/chat/register", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ clientId: trimmedClientId }),
+                body: JSON.stringify({ clientId: trimmedClientId, chatId: trimmedChatId }),
             });
 
             if (!response.ok) {
@@ -32,26 +38,27 @@ function App() {
             }
 
             setActiveClientId(trimmedClientId);
-            fetchMessageHistory();
+            setActiveChatId(trimmedChatId);
+            fetchMessageHistory(trimmedChatId);
         } catch (error) {
             console.error("Error registering user:", error);
             alert("An unexpected error occurred while registering the user.");
         }
     };
 
-    const fetchMessageHistory = async () => {
+    const fetchMessageHistory = async (chatId) => {
         try {
-            const response = await fetch("http://localhost:5181/api/chat/history");
+            const response = await fetch(`http://localhost:5181/api/chat/history?chatId=${encodeURIComponent(chatId)}`);
             const data = await response.json();
-            setMessages(data.Messages || []);
+            setMessages(data.messages || []);
         } catch (error) {
             console.error("Error fetching message history:", error);
         }
     };
 
     const sendMessage = async () => {
-        if (!activeClientId) {
-            alert("You must enter a Client ID and click 'Start Chat' first!");
+        if (!activeClientId || !activeChatId) {
+            alert("You must enter a Client ID and Chat ID, and click 'Start Chat' first!");
             return;
         }
 
@@ -65,7 +72,7 @@ function App() {
             await fetch("http://localhost:5181/api/chat/send", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ clientId: activeClientId, content: trimmedMessage }),
+                body: JSON.stringify({ clientId: activeClientId, chatId: activeChatId, content: trimmedMessage }),
             });
             setMessageInput("");
         } catch (error) {
@@ -74,25 +81,25 @@ function App() {
     };
 
     const receiveMessages = async () => {
-        if (!activeClientId) {
-            console.warn("Attempted to receive messages without a registered Client ID.");
+        if (!activeClientId || !activeChatId) {
+            console.warn("Attempted to receive messages without a registered Client ID or Chat ID.");
             return;
         }
 
         try {
-            const response = await fetch(`http://localhost:5181/api/chat/receive?clientId=${encodeURIComponent(activeClientId)}`);
-            const data = await response.json();
+            const response = await fetch(
+                `http://localhost:5181/api/chat/receive?clientId=${encodeURIComponent(activeClientId)}&chatId=${encodeURIComponent(activeChatId)}`
+            );
 
-            console.log("Received data:", data);
+            console.log("Response status:", response.status);
+
+            const data = await response.json();
+            console.log("Received data from API:", data);
 
             if (data && data.messages && data.messages.length > 0) {
-                setMessages((prevMessages) => {
-                    console.log("Previous Messages:", prevMessages);
-                    console.log("New Messages:", data.messages);
-                    return [...prevMessages, ...data.messages];
-                });
+                setMessages((prevMessages) => [...prevMessages, ...data.messages]);
+                console.log("Updated messages state:", [...messages, ...data.messages]);
             }
-
         } catch (error) {
             console.error("Error receiving messages:", error);
         } finally {
@@ -100,18 +107,20 @@ function App() {
         }
     };
 
+
     useEffect(() => {
-        if (activeClientId) {
-            console.log(`Starting to receive messages for client ID: ${activeClientId}`);
+        if (activeClientId && activeChatId) {
+            console.log(`Starting to receive messages for chat ID: ${activeChatId}`);
+
             receiveMessages();
         }
-    }, [activeClientId]);
+    }, [activeClientId, activeChatId]);
 
     return (
         <div className="container">
             <h1>Group Chat</h1>
 
-            {!activeClientId ? (
+            {!activeClientId || !activeChatId ? (
                 <div className="inputContainer">
                     <input
                         type="text"
@@ -120,12 +129,21 @@ function App() {
                         onChange={(e) => setClientIdInput(e.target.value)}
                         className="input"
                     />
+                    <input
+                        type="text"
+                        placeholder="Enter Chat ID..."
+                        value={chatIdInput}
+                        onChange={(e) => setChatIdInput(e.target.value)}
+                        className="input"
+                    />
                     <button onClick={startChat} className="button">
                         Start Chat
                     </button>
                 </div>
             ) : (
-                <div className="message">Client ID: {activeClientId}</div>
+                <div className="message">
+                    Client ID: {activeClientId}, Chat ID: {activeChatId}
+                </div>
             )}
 
             <div className="chatBox">
@@ -141,9 +159,7 @@ function App() {
             </div>
 
 
-
-
-            {activeClientId && (
+            {activeClientId && activeChatId && (
                 <div className="inputContainer">
                     <input
                         type="text"
