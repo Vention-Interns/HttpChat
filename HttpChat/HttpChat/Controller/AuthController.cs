@@ -24,8 +24,9 @@ namespace HttpChat.Controller
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginModel model)
         {
-            if (model == null || !ModelState.IsValid)
+            if (model == null || !ModelState.IsValid) { 
                 return BadRequest("Invalid request");
+            }
 
             var user = await _userManager.FindByEmailAsync(model.Email);
             if (user != null && await _userManager.CheckPasswordAsync(user, model.Password))

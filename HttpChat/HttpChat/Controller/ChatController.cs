@@ -11,27 +11,24 @@ namespace HttpChat.Controller
     {
         private readonly IMessageService _messageService;
 
-        public ChatController(IMessageService messageService)
-        {
-            _messageService = messageService;
 
-            StartInactiveClientCleanupTask();
-        }
-
-        private static readonly ConcurrentDictionary<string, ConcurrentQueue<MessageRequestDto>> ChatMessageQueues =
+        private static readonly ConcurrentDictionary<string, ConcurrentQueue<MessageRequestDto>> _chatMessageQueues =
             new();
 
         private static readonly ConcurrentDictionary<string, ConcurrentDictionary<string, Queue<string>>>
-            ChatClientQueues = new();
+            _chatClientQueues = new();
 
         private static readonly ConcurrentDictionary<string, ConcurrentDictionary<string, TaskCompletionSource<bool>>>
-            WaitingClients = new();
+            _waitingClients = new();
 
-        private static readonly ConcurrentDictionary<string, DateTime> ClientLastActive = new();
+        private static readonly ConcurrentDictionary<string, DateTime> _clientLastActive = new();
 
-        private const string MessageFieldsMissingError = "Message content, ClientId, and ChatId cannot be empty.";
-
-        private readonly TimeSpan InactiveThreshold = TimeSpan.FromSeconds(10);
+        private readonly TimeSpan _inactiveThreshold = TimeSpan.FromSeconds(10);
+        public ChatController(IMessageService messageService)
+        {
+            _messageService = messageService;
+            StartInactiveClientCleanupTask();
+        }
 
         private void StartInactiveClientCleanupTask()
         {
@@ -49,27 +46,27 @@ namespace HttpChat.Controller
         {
             var now = DateTime.UtcNow;
 
-            foreach (var chatId in ChatClientQueues.Keys.ToList())
+            foreach (var chatId in _chatClientQueues.Keys.ToList())
             {
-                if (ChatClientQueues.TryGetValue(chatId, out var clientQueues))
+                if (_chatClientQueues.TryGetValue(chatId, out var clientQueues))
                 {
                     foreach (var clientId in clientQueues.Keys.ToList())
                     {
-                        if (ClientLastActive.TryGetValue(clientId, out var lastActive) &&
-                            now - lastActive > InactiveThreshold)
+                        if (_clientLastActive.TryGetValue(clientId, out var lastActive) &&
+                            now - lastActive > _inactiveThreshold)
                         {
                             Console.WriteLine("Removing User " + clientId);
                             clientQueues.TryRemove(clientId, out _);
-                            ClientLastActive.TryRemove(clientId, out _);
+                            _clientLastActive.TryRemove(clientId, out _);
                             Console.WriteLine($"Removed inactive client {clientId} from chat {chatId}.");
                         }
                     }
 
                     if (clientQueues.IsEmpty)
                     {
-                        ChatClientQueues.TryRemove(chatId, out _);
-                        ChatMessageQueues.TryRemove(chatId, out _);
-                        WaitingClients.TryRemove(chatId, out _);
+                        _chatClientQueues.TryRemove(chatId, out _);
+                        _chatMessageQueues.TryRemove(chatId, out _);
+                        _waitingClients.TryRemove(chatId, out _);
                         Console.WriteLine($"Removed empty chat {chatId}.");
                     }
                 }
@@ -79,16 +76,17 @@ namespace HttpChat.Controller
         [HttpPost("register")]
         public async Task<IActionResult> RegisterUser([FromBody] RegisterUserRequest request)
         {
-            if (string.IsNullOrWhiteSpace(request.ClientId) || string.IsNullOrWhiteSpace(request.ChatId))
+            if (string.IsNullOrWhiteSpace(request.ClientId) || string.IsNullOrWhiteSpace(request.ChatId)) { 
                 return BadRequest(new { Error = "Client ID and Chat ID cannot be empty." });
+            }
 
-            ChatClientQueues.GetOrAdd(request.ChatId, _ => new ConcurrentDictionary<string, Queue<string>>());
-            ChatMessageQueues.GetOrAdd(request.ChatId, _ => new ConcurrentQueue<MessageRequestDto>());
-            WaitingClients.GetOrAdd(request.ChatId,
+            _chatClientQueues.GetOrAdd(request.ChatId, _ => new ConcurrentDictionary<string, Queue<string>>());
+            _chatMessageQueues.GetOrAdd(request.ChatId, _ => new ConcurrentQueue<MessageRequestDto>());
+            _waitingClients.GetOrAdd(request.ChatId,
                 _ => new ConcurrentDictionary<string, TaskCompletionSource<bool>>());
 
-            ChatClientQueues[request.ChatId].TryAdd(request.ClientId, new Queue<string>());
-            ClientLastActive[request.ClientId] = DateTime.UtcNow;
+            _chatClientQueues[request.ChatId].TryAdd(request.ClientId, new Queue<string>());
+            _clientLastActive[request.ClientId] = DateTime.UtcNow;
 
             return await Task.FromResult(Ok(new { Status = "User registered successfully." }));
         }
@@ -97,17 +95,19 @@ namespace HttpChat.Controller
         public async Task<IActionResult> SendMessage([FromBody] MessageRequestDto message)
         {
             if (string.IsNullOrWhiteSpace(message.Content) || string.IsNullOrWhiteSpace(message.ClientId) ||
-                string.IsNullOrWhiteSpace(message.ChatId))
-                return BadRequest(new { Error = MessageFieldsMissingError });
+                string.IsNullOrWhiteSpace(message.ChatId)) { 
+                return BadRequest(new { Error = "Message content, ClientId, and ChatId cannot be empty." });
+            }
 
-            if (!ChatMessageQueues.ContainsKey(message.ChatId))
+            if (!_chatMessageQueues.ContainsKey(message.ChatId)) { 
                 return BadRequest(new { Error = "Invalid Chat ID." });
+            }
 
             var fullMessage = $"{message.ClientId}: {message.Content}";
 
-            ChatMessageQueues[message.ChatId].Enqueue(message);
+            _chatMessageQueues[message.ChatId].Enqueue(message);
 
-            foreach (var clientQueue in ChatClientQueues[message.ChatId].Values)
+            foreach (var clientQueue in _chatClientQueues[message.ChatId].Values)
             {
                 lock (clientQueue)
                 {
@@ -115,7 +115,7 @@ namespace HttpChat.Controller
                 }
             }
 
-            foreach (var waitingClient in WaitingClients[message.ChatId].Values)
+            foreach (var waitingClient in _waitingClients[message.ChatId].Values)
             {
                 waitingClient.TrySetResult(true);
             }
@@ -127,15 +127,17 @@ namespace HttpChat.Controller
         public async Task<IActionResult> ReceiveMessage([FromQuery] string clientId, [FromQuery] string chatId)
         {
             if (string.IsNullOrWhiteSpace(clientId) || string.IsNullOrWhiteSpace(chatId) ||
-                !ChatClientQueues.ContainsKey(chatId))
+                !_chatClientQueues.ContainsKey(chatId)) { 
                 return BadRequest(new { Error = "Invalid or unregistered Client ID or Chat ID." });
+            }
 
-            if (!ChatClientQueues[chatId].ContainsKey(clientId))
+            if (!_chatClientQueues[chatId].ContainsKey(clientId)) { 
                 return BadRequest(new { Error = "Client is not registered in the specified chat." });
+            }
 
-            ClientLastActive[clientId] = DateTime.UtcNow;
+            _clientLastActive[clientId] = DateTime.UtcNow;
 
-            var clientQueue = ChatClientQueues[chatId][clientId];
+            var clientQueue = _chatClientQueues[chatId][clientId];
             TaskCompletionSource<bool> tcs = null;
 
             lock (clientQueue)
@@ -152,10 +154,10 @@ namespace HttpChat.Controller
             }
 
             tcs = new TaskCompletionSource<bool>();
-            WaitingClients[chatId][clientId] = tcs;
+            _waitingClients[chatId][clientId] = tcs;
 
             var completedTask = await Task.WhenAny(tcs.Task, Task.Delay(5000));
-            WaitingClients[chatId].TryRemove(clientId, out _);
+            _waitingClients[chatId].TryRemove(clientId, out _);
 
             lock (clientQueue)
             {
@@ -175,7 +177,7 @@ namespace HttpChat.Controller
 
         private void CheckAndSaveMessages(string chatId)
         {
-            if (ChatClientQueues.TryGetValue(chatId, out var clientQueues))
+            if (_chatClientQueues.TryGetValue(chatId, out var clientQueues))
             {
                 foreach (var clientQueue in clientQueues.Values)
                 {
@@ -188,7 +190,7 @@ namespace HttpChat.Controller
                     }
                 }
 
-                if (ChatMessageQueues.TryGetValue(chatId, out var messageQueue))
+                if (_chatMessageQueues.TryGetValue(chatId, out var messageQueue))
                 {
                     SaveLocalMessages(chatId, messageQueue.Select(m => $"{m.ClientId}: {m.Content}"));
 
@@ -213,10 +215,12 @@ namespace HttpChat.Controller
         [HttpGet("history")]
         public async Task<IActionResult> GetMessageHistory([FromQuery] string chatId)
         {
-            if (string.IsNullOrWhiteSpace(chatId) || !ChatMessageQueues.ContainsKey(chatId))
+            if (string.IsNullOrWhiteSpace(chatId) || !_chatMessageQueues.ContainsKey(chatId)) { 
                 return BadRequest(new { Error = "Invalid Chat ID." });
+            }
 
-            var messages = await Task.FromResult(ChatMessageQueues[chatId].ToArray().Select(x => x.Content));
+            var messages = await Task.FromResult(_chatMessageQueues[chatId].ToArray().Select(x => x.Content));
+
             return Ok(new { Messages = messages });
         }
     }

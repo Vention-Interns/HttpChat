@@ -1,10 +1,6 @@
 ﻿using HttpChat.Model;
 
 namespace HttpChat.dto;
-
-using System;
-using System.Collections.Generic;
-
 public class ChatResponseDto
 {
     public int Id { get; set; }
