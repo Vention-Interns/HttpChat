@@ -1,7 +1,5 @@
 ﻿using System.Collections.Concurrent;
-using Azure.Core;
 using HttpChat.dto;
-using HttpChat.Model;
 using HttpChat.persistence;
 
 namespace HttpChat.Service.ChatService;
@@ -89,7 +87,7 @@ public class MessageService : IMessageService
                 clientQueue.Clear();
                 CheckAndSaveMessages(chatId);
 
-                return messages; ;
+                return messages;
             }
         }
 

@@ -10,7 +10,7 @@ public class MessageResponseDto
     public string SenderUsername { get; set; }
     public int ChatId { get; set; }
 
-    public static MessageResponseDto ToDto(Message message)
+    public static MessageResponseDto ToDto(MessageModel message)
     {
         return new MessageResponseDto
         {

@@ -1,5 +1,4 @@
-﻿using System.Collections.Concurrent;
-using HttpChat.dto;
+﻿using HttpChat.dto;
 using HttpChat.Service.ChatService;
 using Microsoft.AspNetCore.Mvc;
 
@@ -31,12 +30,17 @@ namespace HttpChat.Controller
         [HttpPost("send")]
         public async Task<IActionResult> SendMessage([FromBody] MessageRequestDto message)
         {
-            if (string.IsNullOrWhiteSpace(message.Content) || string.IsNullOrWhiteSpace(message.ClientId) ||
-                string.IsNullOrWhiteSpace(message.ChatId)) { 
+            if (string.IsNullOrWhiteSpace(message.Content) || 
+                string.IsNullOrWhiteSpace(message.ClientId) ||
+                string.IsNullOrWhiteSpace(message.ChatId)) 
+            { 
                 return BadRequest(new { Error = "Message content, ClientId, and ChatId cannot be empty." });
             }
 
-            if (!await _messageService.IsChatIdValid(message.ChatId)) { 
+            var chatId = message.ChatId;
+
+            if (!await _messageService.IsChatIdValid(chatId)) 
+            { 
                 return BadRequest(new { Error = "Invalid Chat ID." });
             }
 
@@ -48,8 +52,10 @@ namespace HttpChat.Controller
         [HttpGet("receive")]
         public async Task<IActionResult> ReceiveMessage([FromQuery] string clientId, [FromQuery] string chatId)
         {
-            if (string.IsNullOrWhiteSpace(clientId) || string.IsNullOrWhiteSpace(chatId) ||
-                !_messageService.IsClientChatSetted(chatId, clientId)) { 
+            if (string.IsNullOrWhiteSpace(clientId) ||
+                string.IsNullOrWhiteSpace(chatId) ||
+                !_messageService.IsClientChatSetted(chatId, clientId)) 
+            { 
                 return BadRequest(new { Error = "Invalid or unregistered Client ID or Chat ID." });
             }
 
@@ -72,14 +78,13 @@ namespace HttpChat.Controller
             }
 
             var messages = await _messageService.GetMessageHistoryAsync(chatId);
+
             if (messages == null)
             {
                 return BadRequest(new { Error = "Invalid or non-existent Chat ID." });
             }
 
             return Ok(new { Messages = messages });
-        }
-
-       
+        }       
     }
 }

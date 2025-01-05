@@ -9,9 +9,9 @@ public interface IMessageService
     void RegisterUser(RegisterUserRequest request);
     void SendMessage(MessageRequestDto message);
     Task<bool> IsChatIdValid(string chatId);
-    bool IsClientChatSetted(String chatId, String clientId);
+    bool IsClientChatSetted(string chatId, string clientId);
 
-    Task<string[]> ReceiveMessageAsync(String chatId, String clientId);
+    Task<string[]> ReceiveMessageAsync(string chatId, string clientId);
     Task<IEnumerable<string>?> GetMessageHistoryAsync(string chatId);
     void StartInactiveClientCleanupTask();
 

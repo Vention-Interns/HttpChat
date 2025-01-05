@@ -12,13 +12,15 @@ namespace HttpChat.Controller
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private readonly UserManager<User> _userManager;
-        private readonly SignInManager<User> _signInManager;
+        private readonly UserManager<UserModel> _userManager;
+        private readonly SignInManager<UserModel> _signInManager;
+        private readonly string _jwtSecretKey;
 
-        public AuthController(UserManager<User> userManager, SignInManager<User> signInManager)
+        public AuthController(UserManager<UserModel> userManager, SignInManager<UserModel> signInManager, IConfiguration configuration)
         {
             _userManager = userManager;
             _signInManager = signInManager;
+            _jwtSecretKey = configuration["AppSettings:JwtSecretKey"];
         }
 
         [HttpPost("login")]
@@ -32,7 +34,7 @@ namespace HttpChat.Controller
             if (user != null && await _userManager.CheckPasswordAsync(user, model.Password))
             {
                 var tokenHandler = new JwtSecurityTokenHandler();
-                var key = Encoding.UTF8.GetBytes("sdfgydsfkgksdjfgksdlfkjglksdjfgjkldsflkjglsdjfdsfjghdssdfkjghkdjsfhgj");
+                var key = Encoding.UTF8.GetBytes(_jwtSecretKey);
 
                 var tokenDescriptor = new SecurityTokenDescriptor
                 {
