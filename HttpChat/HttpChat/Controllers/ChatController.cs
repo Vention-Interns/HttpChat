@@ -18,29 +18,32 @@ namespace HttpChat.Controller
         [HttpPost("register")]
         public async Task<IActionResult> RegisterUser([FromBody] RegisterUserRequest request)
         {
-            if (string.IsNullOrWhiteSpace(request.ClientId) || string.IsNullOrWhiteSpace(request.ChatId)) { 
-                return BadRequest(new { Error = "Client ID and Chat ID cannot be empty." });
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(new
+                {
+                    Errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage)
+                });
             }
 
             _messageService.RegisterUser(request);
-            
+
             return await Task.FromResult(Ok(new { Status = "User registered successfully." }));
         }
 
         [HttpPost("send")]
         public async Task<IActionResult> SendMessage([FromBody] MessageRequestDto message)
         {
-            if (string.IsNullOrWhiteSpace(message.Content) || 
-                string.IsNullOrWhiteSpace(message.ClientId) ||
-                string.IsNullOrWhiteSpace(message.ChatId)) 
-            { 
-                return BadRequest(new { Error = "Message content, ClientId, and ChatId cannot be empty." });
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(new
+                {
+                    Errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage)
+                });
             }
 
-            var chatId = message.ChatId;
-
-            if (!await _messageService.IsChatIdValid(chatId)) 
-            { 
+            if (!await _messageService.IsChatIdValid(message.ChatId))
+            {
                 return BadRequest(new { Error = "Invalid Chat ID." });
             }
 
@@ -52,11 +55,10 @@ namespace HttpChat.Controller
         [HttpGet("receive")]
         public async Task<IActionResult> ReceiveMessage([FromQuery] string clientId, [FromQuery] string chatId)
         {
-            if (string.IsNullOrWhiteSpace(clientId) ||
-                string.IsNullOrWhiteSpace(chatId) ||
-                !_messageService.IsClientChatSetted(chatId, clientId)) 
-            { 
-                return BadRequest(new { Error = "Invalid or unregistered Client ID or Chat ID." });
+            var validationError = ValidateReceiveMessage(clientId, chatId);
+            if (!string.IsNullOrEmpty(validationError))
+            {
+                return BadRequest(new { Error = validationError });
             }
 
             var messages = await _messageService.ReceiveMessageAsync(chatId, clientId);
@@ -85,6 +87,26 @@ namespace HttpChat.Controller
             }
 
             return Ok(new { Messages = messages });
-        }       
+        }
+
+        private string ValidateReceiveMessage(string clientId, string chatId)
+        {
+            if (string.IsNullOrWhiteSpace(clientId))
+            {
+                return "Client ID cannot be empty.";
+            }
+
+            if (string.IsNullOrWhiteSpace(chatId))
+            {
+                return "Chat ID cannot be empty.";
+            }
+
+            if (!_messageService.IsClientChatSetted(chatId, clientId))
+            {
+                return "Invalid or unregistered Client ID or Chat ID.";
+            }
+
+            return string.Empty;
+        }
     }
 }

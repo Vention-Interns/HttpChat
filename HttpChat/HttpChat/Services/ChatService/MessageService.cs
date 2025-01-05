@@ -72,7 +72,7 @@ public class MessageService : IMessageService
         return _chatClientQueues.ContainsKey(chatId) && _chatClientQueues[chatId].ContainsKey(clientId);
     }
 
-    public async Task<string[]> ReceiveMessageAsync(String chatId, String clientId)
+    public async Task<string[]> ReceiveMessageAsync(string chatId, string clientId)
     {
         _clientLastActive[clientId] = DateTime.UtcNow;
 
