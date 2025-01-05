@@ -10,7 +10,7 @@ public class ChatResponseDto
     public List<string> Participants { get; set; }
     public List<MessageResponseDto> Messages { get; set; }
 
-    public static ChatResponseDto ToDto(Chat chat)
+    public static ChatResponseDto ToDto(ChatModel chat)
     {
         return new ChatResponseDto
         {

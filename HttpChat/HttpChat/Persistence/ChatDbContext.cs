@@ -4,10 +4,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HttpChat.persistence
 {
-    public class ChatDbContext : IdentityDbContext<User>
+    public class ChatDbContext : IdentityDbContext<UserModel>
     {
-        public DbSet<Chat> Chats { get; set; }
-        public DbSet<Message> Messages { get; set; }
+        public DbSet<ChatModel> Chats { get; set; }
+        public DbSet<MessageModel> Messages { get; set; }
 
         public ChatDbContext(DbContextOptions options) : base(options)
         {
@@ -17,28 +17,28 @@ namespace HttpChat.persistence
         {
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<Chat>()
+            modelBuilder.Entity<ChatModel>()
                 .HasMany(c => c.Participants)
                 .WithMany(u => u.Chats)
                 .UsingEntity(j => j.ToTable("UserChats"));
 
-            modelBuilder.Entity<Chat>()
+            modelBuilder.Entity<ChatModel>()
                 .HasMany(c => c.Messages)
                 .WithOne(m => m.Chat)
                 .HasForeignKey(m => m.ChatId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<User>()
+            modelBuilder.Entity<UserModel>()
                 .HasMany(u => u.Messages)
                 .WithOne(m => m.Sender)
                 .HasForeignKey(m => m.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<User>()
+            modelBuilder.Entity<UserModel>()
                 .HasIndex(u => u.Email)
                 .IsUnique();
 
-            modelBuilder.Entity<Message>()
+            modelBuilder.Entity<MessageModel>()
                 .Property(m => m.Content)
                 .IsRequired();
 

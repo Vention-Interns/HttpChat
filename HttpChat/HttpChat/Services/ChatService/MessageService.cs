@@ -1,7 +1,5 @@
 ﻿using System.Collections.Concurrent;
-using Azure.Core;
 using HttpChat.dto;
-using HttpChat.Model;
 using HttpChat.persistence;
 
 namespace HttpChat.Service.ChatService;
@@ -74,7 +72,7 @@ public class MessageService : IMessageService
         return _chatClientQueues.ContainsKey(chatId) && _chatClientQueues[chatId].ContainsKey(clientId);
     }
 
-    public async Task<string[]> ReceiveMessageAsync(String chatId, String clientId)
+    public async Task<string[]> ReceiveMessageAsync(string chatId, string clientId)
     {
         _clientLastActive[clientId] = DateTime.UtcNow;
 
@@ -89,7 +87,7 @@ public class MessageService : IMessageService
                 clientQueue.Clear();
                 CheckAndSaveMessages(chatId);
 
-                return messages; ;
+                return messages;
             }
         }
 
