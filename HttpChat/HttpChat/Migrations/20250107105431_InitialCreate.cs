@@ -3,12 +3,10 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
-
 namespace HttpChat.Migrations
 {
     /// <inheritdoc />
-    public partial class Init : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -224,35 +222,6 @@ namespace HttpChat.Migrations
                         principalTable: "Chats",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.InsertData(
-                table: "AspNetUsers",
-                columns: new[] { "Id", "AccessFailedCount", "ConcurrencyStamp", "CreatedAt", "Email", "EmailConfirmed", "LockoutEnabled", "LockoutEnd", "NormalizedEmail", "NormalizedUserName", "PasswordHash", "PhoneNumber", "PhoneNumberConfirmed", "SecurityStamp", "TwoFactorEnabled", "UserName" },
-                values: new object[,]
-                {
-                    { "1", 0, "9e07d744-1661-46b9-8761-f185bd83ea2b", new DateTime(2024, 12, 26, 5, 38, 15, 515, DateTimeKind.Utc).AddTicks(975), "admin@example.com", false, false, null, null, null, null, null, false, "d9997ce0-d95c-47cd-88f6-80b0fe523625", false, "admin" },
-                    { "2", 0, "4452ff8a-d2ce-4081-9538-836e16aef08f", new DateTime(2024, 12, 26, 5, 38, 15, 515, DateTimeKind.Utc).AddTicks(1294), "john.doe@example.com", false, false, null, null, null, null, null, false, "6bd26d7e-c1ee-486c-bab8-90a7200a4577", false, "john_doe" },
-                    { "3", 0, "7a6aa949-a232-4181-8375-7a6e108e1762", new DateTime(2024, 12, 26, 5, 38, 15, 515, DateTimeKind.Utc).AddTicks(1312), "jane.doe@example.com", false, false, null, null, null, null, null, false, "df1f80aa-1695-4c33-8fdc-a8619fdc781c", false, "jane_doe" }
-                });
-
-            migrationBuilder.InsertData(
-                table: "Chats",
-                columns: new[] { "Id", "CreatedAt", "IsGroupChat", "Name" },
-                values: new object[,]
-                {
-                    { 1, new DateTime(2024, 12, 26, 5, 38, 15, 515, DateTimeKind.Utc).AddTicks(6672), true, "General Chat" },
-                    { 2, new DateTime(2024, 12, 26, 5, 38, 15, 515, DateTimeKind.Utc).AddTicks(6825), true, "Project Team" }
-                });
-
-            migrationBuilder.InsertData(
-                table: "Messages",
-                columns: new[] { "Id", "ChatId", "Content", "SentAt", "UserId" },
-                values: new object[,]
-                {
-                    { 1, 1, "Welcome to the chat!", new DateTime(2024, 12, 26, 5, 38, 15, 515, DateTimeKind.Utc).AddTicks(7540), "1" },
-                    { 2, 1, "Hello everyone!", new DateTime(2024, 12, 26, 5, 38, 15, 515, DateTimeKind.Utc).AddTicks(7906), "2" },
-                    { 3, 2, "Hi team, let's get started.", new DateTime(2024, 12, 26, 5, 38, 15, 515, DateTimeKind.Utc).AddTicks(7907), "3" }
                 });
 
             migrationBuilder.CreateIndex(

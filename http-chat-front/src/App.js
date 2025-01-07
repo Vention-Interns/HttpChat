@@ -1,5 +1,6 @@
 import "./App.css";
 import { useEffect, useState } from "react";
+import axios from "axios";
 
 function App() {
     const [messages, setMessages] = useState([]);
@@ -8,6 +9,37 @@ function App() {
     const [chatIdInput, setChatIdInput] = useState("");
     const [activeClientId, setActiveClientId] = useState(null);
     const [activeChatId, setActiveChatId] = useState(null);
+    const [token, setToken] = useState(localStorage.getItem("authToken") || "");
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [isAuthenticated, setIsAuthenticated] = useState(!!token);
+
+    const handleLogin = async (e) => {
+        e.preventDefault();
+
+        try {
+            console.log("email ", email)
+            console.log("password ", password)
+            const response = await axios.post("http://localhost:5181/api/Auth/login", { email, password });
+            const { token } = response.data;
+
+            localStorage.setItem("authToken", token);
+            setToken(token);
+            setIsAuthenticated(true);
+        } catch (error) {
+            alert("Login failed! Please check your credentials.");
+            console.error("Login error:", error);
+        }
+    };
+
+    const handleLogout = () => {
+        localStorage.removeItem("authToken");
+        setToken("");
+        setIsAuthenticated(false);
+        setActiveClientId(null);
+        setActiveChatId(null);
+        setMessages([]);
+    };
 
     const startChat = async () => {
         const trimmedClientId = clientIdInput.trim();
@@ -19,38 +51,28 @@ function App() {
         }
 
         try {
-            console.log("Registering user with payload:", {
-                clientId: trimmedClientId,
-                chatId: trimmedChatId,
-            });
-
-            const response = await fetch("http://localhost:5181/api/chat/register", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ clientId: trimmedClientId, chatId: trimmedChatId }),
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                console.error("Failed to register user:", errorData);
-                alert(`Error: ${errorData.Error || "Failed to register user."}`);
-                return;
-            }
+            const response = await axios.post(
+                "http://localhost:5181/api/chat/register",
+                { clientId: trimmedClientId, chatId: trimmedChatId },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
 
             setActiveClientId(trimmedClientId);
             setActiveChatId(trimmedChatId);
             fetchMessageHistory(trimmedChatId);
         } catch (error) {
+            alert("Failed to start chat. Please try again.");
             console.error("Error registering user:", error);
-            alert("An unexpected error occurred while registering the user.");
         }
     };
 
     const fetchMessageHistory = async (chatId) => {
         try {
-            const response = await fetch(`http://localhost:5181/api/chat/history?chatId=${encodeURIComponent(chatId)}`);
-            const data = await response.json();
-            setMessages(data.messages || []);
+            const response = await axios.get(
+                `http://localhost:5181/api/chat/history?chatId=${encodeURIComponent(chatId)}`,
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            setMessages(response.data.messages || []);
         } catch (error) {
             console.error("Error fetching message history:", error);
         }
@@ -69,11 +91,11 @@ function App() {
         }
 
         try {
-            await fetch("http://localhost:5181/api/chat/send", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ clientId: activeClientId, chatId: activeChatId, content: trimmedMessage }),
-            });
+            await axios.post(
+                "http://localhost:5181/api/chat/send",
+                { clientId: activeClientId, chatId: activeChatId, content: trimmedMessage },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
             setMessageInput("");
         } catch (error) {
             console.error("Error sending message:", error);
@@ -87,18 +109,13 @@ function App() {
         }
 
         try {
-            const response = await fetch(
-                `http://localhost:5181/api/chat/receive?clientId=${encodeURIComponent(activeClientId)}&chatId=${encodeURIComponent(activeChatId)}`
+            const response = await axios.get(
+                `http://localhost:5181/api/chat/receive?clientId=${encodeURIComponent(activeClientId)}&chatId=${encodeURIComponent(activeChatId)}`,
+                { headers: { Authorization: `Bearer ${token}` } }
             );
 
-            console.log("Response status:", response.status);
-
-            const data = await response.json();
-            console.log("Received data from API:", data);
-
-            if (data && data.messages && data.messages.length > 0) {
-                setMessages((prevMessages) => [...prevMessages, ...data.messages]);
-                console.log("Updated messages state:", [...messages, ...data.messages]);
+            if (response.data && response.data.messages && response.data.messages.length > 0) {
+                setMessages((prevMessages) => [...prevMessages, ...response.data.messages]);
             }
         } catch (error) {
             console.error("Error receiving messages:", error);
@@ -107,11 +124,8 @@ function App() {
         }
     };
 
-
     useEffect(() => {
         if (activeClientId && activeChatId) {
-            console.log(`Starting to receive messages for chat ID: ${activeChatId}`);
-
             receiveMessages();
         }
     }, [activeClientId, activeChatId]);
@@ -120,58 +134,90 @@ function App() {
         <div className="container">
             <h1>Group Chat</h1>
 
-            {!activeClientId || !activeChatId ? (
+            {!isAuthenticated ? (
                 <div className="inputContainer">
-                    <input
-                        type="text"
-                        placeholder="Enter your Client ID..."
-                        value={clientIdInput}
-                        onChange={(e) => setClientIdInput(e.target.value)}
-                        className="input"
-                    />
-                    <input
-                        type="text"
-                        placeholder="Enter Chat ID..."
-                        value={chatIdInput}
-                        onChange={(e) => setChatIdInput(e.target.value)}
-                        className="input"
-                    />
-                    <button onClick={startChat} className="button">
-                        Start Chat
-                    </button>
+                    <h2>Login</h2>
+                    <form onSubmit={handleLogin}>
+                        <input
+                            type="email"
+                            placeholder="Enter your email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            required
+                            className="input"
+                        />
+                        <input
+                            type="password"
+                            placeholder="Enter your password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            required
+                            className="input"
+                        />
+                        <button type="submit" className="button">
+                            Login
+                        </button>
+                    </form>
                 </div>
             ) : (
-                <div className="message">
-                    Client ID: {activeClientId}, Chat ID: {activeChatId}
-                </div>
-            )}
-
-            <div className="chatBox">
-                {messages.length > 0 ? (
-                    messages.map((msg, index) => (
-                        <div key={index} className="message">
-                            {msg}
+                <>
+                    {!activeClientId || !activeChatId ? (
+                        <div className="inputContainer">
+                            <input
+                                type="text"
+                                placeholder="Enter your Client ID..."
+                                value={clientIdInput}
+                                onChange={(e) => setClientIdInput(e.target.value)}
+                                className="input"
+                            />
+                            <input
+                                type="text"
+                                placeholder="Enter Chat ID..."
+                                value={chatIdInput}
+                                onChange={(e) => setChatIdInput(e.target.value)}
+                                className="input"
+                            />
+                            <button onClick={startChat} className="button">
+                                Start Chat
+                            </button>
+                            <button onClick={handleLogout} className="button">
+                                Logout
+                            </button>
                         </div>
-                    ))
-                ) : (
-                    <div className="message">No messages yet...</div>
-                )}
-            </div>
-
-
-            {activeClientId && activeChatId && (
-                <div className="inputContainer">
-                    <input
-                        type="text"
-                        placeholder="Type a message..."
-                        value={messageInput}
-                        onChange={(e) => setMessageInput(e.target.value)}
-                        className="input"
-                    />
-                    <button onClick={sendMessage} className="button">
-                        Send
-                    </button>
-                </div>
+                    ) : (
+                        <>
+                            <div className="message">
+                                Client ID: {activeClientId}, Chat ID: {activeChatId}
+                            </div>
+                            <div className="chatBox">
+                                {messages.length > 0 ? (
+                                    messages.map((msg, index) => (
+                                        <div key={index} className="message">
+                                            {msg}
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="message">No messages yet...</div>
+                                )}
+                            </div>
+                            <div className="inputContainer">
+                                <input
+                                    type="text"
+                                    placeholder="Type a message..."
+                                    value={messageInput}
+                                    onChange={(e) => setMessageInput(e.target.value)}
+                                    className="input"
+                                />
+                                <button onClick={sendMessage} className="button">
+                                    Send
+                                </button>
+                                <button onClick={handleLogout} className="button">
+                                    Logout
+                                </button>
+                            </div>
+                        </>
+                    )}
+                </>
             )}
         </div>
     );

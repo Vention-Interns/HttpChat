@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System;
 using HttpChat.Model;
 using Microsoft.AspNetCore.Identity;
 using HttpChat.persistence;

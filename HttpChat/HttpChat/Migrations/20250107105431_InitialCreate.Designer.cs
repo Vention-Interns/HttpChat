@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HttpChat.Migrations
 {
     [DbContext(typeof(ChatDbContext))]
-    [Migration("20241226053815_Init")]
-    partial class Init
+    [Migration("20250107105431_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -20,7 +20,7 @@ namespace HttpChat.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.0");
 
-            modelBuilder.Entity("ChatUser", b =>
+            modelBuilder.Entity("ChatModelUserModel", b =>
                 {
                     b.Property<int>("ChatsId")
                         .HasColumnType("INTEGER");
@@ -35,7 +35,7 @@ namespace HttpChat.Migrations
                     b.ToTable("UserChats", (string)null);
                 });
 
-            modelBuilder.Entity("HttpChat.Model.Chat", b =>
+            modelBuilder.Entity("HttpChat.Model.ChatModel", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -54,25 +54,9 @@ namespace HttpChat.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Chats");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            CreatedAt = new DateTime(2024, 12, 26, 5, 38, 15, 515, DateTimeKind.Utc).AddTicks(6672),
-                            IsGroupChat = true,
-                            Name = "General Chat"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            CreatedAt = new DateTime(2024, 12, 26, 5, 38, 15, 515, DateTimeKind.Utc).AddTicks(6825),
-                            IsGroupChat = true,
-                            Name = "Project Team"
-                        });
                 });
 
-            modelBuilder.Entity("HttpChat.Model.Message", b =>
+            modelBuilder.Entity("HttpChat.Model.MessageModel", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -99,35 +83,9 @@ namespace HttpChat.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Messages");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            ChatId = 1,
-                            Content = "Welcome to the chat!",
-                            SentAt = new DateTime(2024, 12, 26, 5, 38, 15, 515, DateTimeKind.Utc).AddTicks(7540),
-                            UserId = "1"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            ChatId = 1,
-                            Content = "Hello everyone!",
-                            SentAt = new DateTime(2024, 12, 26, 5, 38, 15, 515, DateTimeKind.Utc).AddTicks(7906),
-                            UserId = "2"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            ChatId = 2,
-                            Content = "Hi team, let's get started.",
-                            SentAt = new DateTime(2024, 12, 26, 5, 38, 15, 515, DateTimeKind.Utc).AddTicks(7907),
-                            UserId = "3"
-                        });
                 });
 
-            modelBuilder.Entity("HttpChat.Model.User", b =>
+            modelBuilder.Entity("HttpChat.Model.UserModel", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("TEXT");
@@ -195,50 +153,6 @@ namespace HttpChat.Migrations
                         .HasDatabaseName("UserNameIndex");
 
                     b.ToTable("AspNetUsers", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = "1",
-                            AccessFailedCount = 0,
-                            ConcurrencyStamp = "9e07d744-1661-46b9-8761-f185bd83ea2b",
-                            CreatedAt = new DateTime(2024, 12, 26, 5, 38, 15, 515, DateTimeKind.Utc).AddTicks(975),
-                            Email = "admin@example.com",
-                            EmailConfirmed = false,
-                            LockoutEnabled = false,
-                            PhoneNumberConfirmed = false,
-                            SecurityStamp = "d9997ce0-d95c-47cd-88f6-80b0fe523625",
-                            TwoFactorEnabled = false,
-                            UserName = "admin"
-                        },
-                        new
-                        {
-                            Id = "2",
-                            AccessFailedCount = 0,
-                            ConcurrencyStamp = "4452ff8a-d2ce-4081-9538-836e16aef08f",
-                            CreatedAt = new DateTime(2024, 12, 26, 5, 38, 15, 515, DateTimeKind.Utc).AddTicks(1294),
-                            Email = "john.doe@example.com",
-                            EmailConfirmed = false,
-                            LockoutEnabled = false,
-                            PhoneNumberConfirmed = false,
-                            SecurityStamp = "6bd26d7e-c1ee-486c-bab8-90a7200a4577",
-                            TwoFactorEnabled = false,
-                            UserName = "john_doe"
-                        },
-                        new
-                        {
-                            Id = "3",
-                            AccessFailedCount = 0,
-                            ConcurrencyStamp = "7a6aa949-a232-4181-8375-7a6e108e1762",
-                            CreatedAt = new DateTime(2024, 12, 26, 5, 38, 15, 515, DateTimeKind.Utc).AddTicks(1312),
-                            Email = "jane.doe@example.com",
-                            EmailConfirmed = false,
-                            LockoutEnabled = false,
-                            PhoneNumberConfirmed = false,
-                            SecurityStamp = "df1f80aa-1695-4c33-8fdc-a8619fdc781c",
-                            TwoFactorEnabled = false,
-                            UserName = "jane_doe"
-                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -369,30 +283,30 @@ namespace HttpChat.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("ChatUser", b =>
+            modelBuilder.Entity("ChatModelUserModel", b =>
                 {
-                    b.HasOne("HttpChat.Model.Chat", null)
+                    b.HasOne("HttpChat.Model.ChatModel", null)
                         .WithMany()
                         .HasForeignKey("ChatsId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("HttpChat.Model.User", null)
+                    b.HasOne("HttpChat.Model.UserModel", null)
                         .WithMany()
                         .HasForeignKey("ParticipantsId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("HttpChat.Model.Message", b =>
+            modelBuilder.Entity("HttpChat.Model.MessageModel", b =>
                 {
-                    b.HasOne("HttpChat.Model.Chat", "Chat")
+                    b.HasOne("HttpChat.Model.ChatModel", "Chat")
                         .WithMany("Messages")
                         .HasForeignKey("ChatId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("HttpChat.Model.User", "Sender")
+                    b.HasOne("HttpChat.Model.UserModel", "Sender")
                         .WithMany("Messages")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -414,7 +328,7 @@ namespace HttpChat.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
                 {
-                    b.HasOne("HttpChat.Model.User", null)
+                    b.HasOne("HttpChat.Model.UserModel", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -423,7 +337,7 @@ namespace HttpChat.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
                 {
-                    b.HasOne("HttpChat.Model.User", null)
+                    b.HasOne("HttpChat.Model.UserModel", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -438,7 +352,7 @@ namespace HttpChat.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("HttpChat.Model.User", null)
+                    b.HasOne("HttpChat.Model.UserModel", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -447,19 +361,19 @@ namespace HttpChat.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
                 {
-                    b.HasOne("HttpChat.Model.User", null)
+                    b.HasOne("HttpChat.Model.UserModel", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("HttpChat.Model.Chat", b =>
+            modelBuilder.Entity("HttpChat.Model.ChatModel", b =>
                 {
                     b.Navigation("Messages");
                 });
 
-            modelBuilder.Entity("HttpChat.Model.User", b =>
+            modelBuilder.Entity("HttpChat.Model.UserModel", b =>
                 {
                     b.Navigation("Messages");
                 });

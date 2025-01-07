@@ -2,6 +2,8 @@ using System.Text;
 using HttpChat.Model;
 using HttpChat.persistence;
 using HttpChat.Service.ChatService;
+using HttpChat.Services.AuthService;
+using HttpChat.Services.JwtTokenService;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -43,6 +45,8 @@ builder.Services.AddAuthentication(options =>
     });
 
 builder.Services.AddScoped<IMessageService, MessageService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
 
 
 builder.Services.AddCors(options =>
