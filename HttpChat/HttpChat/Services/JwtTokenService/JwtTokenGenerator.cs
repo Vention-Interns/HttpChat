@@ -30,10 +30,13 @@ public class JwtTokenGenerator : IJwtTokenGenerator
                 new Claim(ClaimTypes.NameIdentifier, user.Id)
             }),
             Expires = DateTime.UtcNow.AddDays(7),
+            Issuer = "http://localhost:5000", 
+            Audience = "http://localhost:5000",
             SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
         };
 
         var token = tokenHandler.CreateToken(tokenDescriptor);
         return tokenHandler.WriteToken(token);
     }
+
 }

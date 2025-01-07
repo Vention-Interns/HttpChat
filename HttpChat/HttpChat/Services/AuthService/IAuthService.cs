@@ -1,9 +1,9 @@
 ﻿using HttpChat.dto;
-using HttpChat.Model;
+using HttpChat.Dtos;
 
 namespace HttpChat.Services.AuthService;
 
 public interface IAuthService
 {
-    Task<AuthResultDto> LoginAsync(LoginModel model);
+    Task<AuthResultDto> LoginAsync(LoginRequestDto requestDto);
 }

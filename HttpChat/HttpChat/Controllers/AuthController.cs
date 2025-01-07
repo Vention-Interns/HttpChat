@@ -1,4 +1,4 @@
-﻿using HttpChat.Model;
+﻿using HttpChat.Dtos;
 using HttpChat.Services.AuthService;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,7 +9,7 @@ namespace HttpChat.Controllers
     public class AuthController(IAuthService authService) : ControllerBase
     {
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginModel model)
+        public async Task<IActionResult> Login([FromBody] LoginRequestDto dto)
         {
             if (!ModelState.IsValid)
             {
@@ -19,7 +19,7 @@ namespace HttpChat.Controllers
                 });
             }
 
-            var result = await authService.LoginAsync(model);
+            var result = await authService.LoginAsync(dto);
 
             if (result.IsSuccess)
             {

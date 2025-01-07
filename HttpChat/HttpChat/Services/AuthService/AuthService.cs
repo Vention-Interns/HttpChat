@@ -1,4 +1,5 @@
 ﻿using HttpChat.dto;
+using HttpChat.Dtos;
 using HttpChat.Model;
 using HttpChat.Services.JwtTokenService;
 using Microsoft.AspNetCore.Identity;
@@ -17,10 +18,10 @@ public class AuthService : IAuthService
         _jwtTokenGenerator = jwtTokenGenerator;
     }
 
-    public async Task<AuthResultDto> LoginAsync(LoginModel model)
+    public async Task<AuthResultDto> LoginAsync(LoginRequestDto requestDto)
     {
-        var user = await _userManager.FindByEmailAsync(model.Email);
-        if (user == null || !await _userManager.CheckPasswordAsync(user, model.Password))
+        var user = await _userManager.FindByEmailAsync(requestDto.Email);
+        if (user == null || !await _userManager.CheckPasswordAsync(user, requestDto.Password))
             return new AuthResultDto()
             {
                 IsSuccess = false,

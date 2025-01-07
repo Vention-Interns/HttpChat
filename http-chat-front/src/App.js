@@ -18,8 +18,6 @@ function App() {
         e.preventDefault();
 
         try {
-            console.log("email ", email)
-            console.log("password ", password)
             const response = await axios.post("http://localhost:5181/api/Auth/login", { email, password });
             const { token } = response.data;
 
@@ -163,6 +161,7 @@ function App() {
                 <>
                     {!activeClientId || !activeChatId ? (
                         <div className="inputContainer">
+
                             <input
                                 type="text"
                                 placeholder="Enter your Client ID..."
