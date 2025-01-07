@@ -1,6 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.12.35527.113 d17.12
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HttpChat", "HttpChat\HttpChat.csproj", "{BF9D4812-DD52-4A39-95F4-B5DE526B0F7C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChatTests", "ChatTests\ChatTests.csproj", "{F32AA525-B64A-4399-AF2F-B7F6D03B69E3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -12,5 +17,12 @@ Global
 		{BF9D4812-DD52-4A39-95F4-B5DE526B0F7C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BF9D4812-DD52-4A39-95F4-B5DE526B0F7C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BF9D4812-DD52-4A39-95F4-B5DE526B0F7C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F32AA525-B64A-4399-AF2F-B7F6D03B69E3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F32AA525-B64A-4399-AF2F-B7F6D03B69E3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F32AA525-B64A-4399-AF2F-B7F6D03B69E3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F32AA525-B64A-4399-AF2F-B7F6D03B69E3}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
 	EndGlobalSection
 EndGlobal
