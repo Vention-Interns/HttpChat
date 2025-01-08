@@ -34,6 +34,44 @@ public class AuthService : IAuthService
             Token = token,
             Expiration = DateTime.UtcNow.AddDays(7)
         };
-
     }
+
+    public async Task<AuthResultDto> RegisterAsync(RegisterRequestDto requestDto)
+    {
+        var user = await _userManager.FindByEmailAsync(requestDto.Email);
+        if (user != null)
+        {
+            return new AuthResultDto
+            {
+                IsSuccess = false,
+                ErrorMessage = "User already exists"
+            };
+        }
+
+        user = new UserModel
+        {
+            UserName = requestDto.Username,
+            Email = requestDto.Email,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var result = await _userManager.CreateAsync(user, requestDto.Password);
+        if (!result.Succeeded)
+        {
+            return new AuthResultDto
+            {
+                IsSuccess = false,
+                ErrorMessage = string.Join(", ", result.Errors.Select(e => e.Description))
+            };
+        }
+
+        var token = _jwtTokenGenerator.GenerateJwtToken(user);
+        return new AuthResultDto
+        {
+            IsSuccess = true,
+            Token = token,
+            Expiration = DateTime.UtcNow.AddDays(7) // Ensure this matches the token's expiration
+        };
+    }
+
 }

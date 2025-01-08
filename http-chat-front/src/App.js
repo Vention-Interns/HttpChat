@@ -5,13 +5,14 @@ import axios from "axios";
 function App() {
     const [messages, setMessages] = useState([]);
     const [messageInput, setMessageInput] = useState("");
-    const [clientIdInput, setClientIdInput] = useState("");
-    const [chatIdInput, setChatIdInput] = useState("");
+    const [clientIdInput, ] = useState("");
+    const [chatIdInput, ] = useState("");
     const [activeClientId, setActiveClientId] = useState(null);
     const [activeChatId, setActiveChatId] = useState(null);
     const [token, setToken] = useState(localStorage.getItem("authToken") || "");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [username, setUsername] = useState("");
     const [isAuthenticated, setIsAuthenticated] = useState(!!token);
     const [chats, setChats] = useState([]);
     const handleLogin = async (e) => {
@@ -19,7 +20,8 @@ function App() {
 
         try {
             const response = await axios.post("http://localhost:5181/api/Auth/login", {email, password});
-            const {token} = response.data;
+            const { token } = response.data;
+            console.info(response);
 
             localStorage.setItem("authToken", token);
             setToken(token);
@@ -31,6 +33,25 @@ function App() {
             console.error("Login error:", error);
         }
     };
+
+    const handleRegister = async (e) => {
+        e.preventDefault();
+
+        try {
+            const response = await axios.post("http://localhost:5181/api/Auth/register", {username, email, password });
+            const { token } = response.data;
+            console.log(response);
+
+            localStorage.setItem("authToken", token);
+            setToken(token);
+            setIsAuthenticated(true);
+
+            fetchChats(token);
+        } catch (error) {
+            alert("Register failed!");
+            console.error("Register error:", error);
+        }
+    }
 
     const handleLogout = () => {
         localStorage.removeItem("authToken");
@@ -64,10 +85,6 @@ function App() {
         }
 
         try {
-            const response = await axios.post(
-                "http://localhost:5181/api/chat/register",
-                {headers: {Authorization: `Bearer ${token}`}}
-            );
 
             setActiveClientId(trimmedClientId);
             setActiveChatId(trimmedChatId);
@@ -177,6 +194,36 @@ function App() {
                         />
                         <button type="submit" className="button">
                             Login
+                        </button>
+                    </form>
+                    <h2>Register</h2>
+                    <form onSubmit={handleRegister}>
+                        <input
+                            type="text"
+                            placeholder="Enter your username"
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
+                            required
+                            className="input"
+                        />
+                        <input
+                            type="email"
+                            placeholder="Enter your email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            required
+                            className="input"
+                        />
+                        <input
+                            type="password"
+                            placeholder="Enter your password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            required
+                            className="input"
+                        />
+                        <button type="submit" className="button">
+                            Register
                         </button>
                     </form>
                 </div>
