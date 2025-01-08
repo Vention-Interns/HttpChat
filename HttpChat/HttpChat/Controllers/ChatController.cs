@@ -23,4 +23,23 @@ public class ChatController(IChatService chatService) : ControllerBase
 
         return Ok(chats);
     }
+
+    [HttpGet("history")]
+    public async Task<IActionResult> GetChatMessages([FromQuery] int chatId)
+    {
+        try
+        {
+            var messages = await chatService.GetChatMessagesAsync(chatId);
+            return Ok(messages);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { Message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500,
+                new { Message = "An error occurred while fetching chat messages.", Error = ex.Message });
+        }
+    }
 }

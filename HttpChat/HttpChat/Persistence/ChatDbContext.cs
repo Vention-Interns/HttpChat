@@ -4,14 +4,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HttpChat.persistence
 {
-    public class ChatDbContext : IdentityDbContext<UserModel>
+    public class ChatDbContext(DbContextOptions options) : IdentityDbContext<UserModel>(options)
     {
         public DbSet<ChatModel> Chats { get; set; }
         public DbSet<MessageModel> Messages { get; set; }
-
-        public ChatDbContext(DbContextOptions options) : base(options)
-        {
-        }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -41,18 +37,6 @@ namespace HttpChat.persistence
             modelBuilder.Entity<MessageModel>()
                 .Property(m => m.Content)
                 .IsRequired();
-
-
-            // modelBuilder.Entity<Chat>().HasData(
-            //     new Chat { Id = 1, Name = "General Chat", IsGroupChat = true, CreatedAt = DateTime.UtcNow },
-            //     new Chat { Id = 2, Name = "Project Team", IsGroupChat = true, CreatedAt = DateTime.UtcNow }
-            // );
-            //
-            // modelBuilder.Entity<Message>().HasData(
-            //     new Message { Id = 1, Content = "Welcome to the chat!", SentAt = DateTime.UtcNow, UserId = "1", ChatId = 1 },
-            //     new Message { Id = 2, Content = "Hello everyone!", SentAt = DateTime.UtcNow, UserId = "2", ChatId = 1 },
-            //     new Message { Id = 3, Content = "Hi team, let's get started.", SentAt = DateTime.UtcNow, UserId = "3", ChatId = 2 }
-            // );
             
         }
     }

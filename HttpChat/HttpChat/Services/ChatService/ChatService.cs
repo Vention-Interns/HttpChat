@@ -1,4 +1,6 @@
-﻿using HttpChat.dtos;
+﻿using HttpChat.dto;
+using HttpChat.dtos;
+using HttpChat.Dtos;
 using HttpChat.persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -17,7 +19,7 @@ public class ChatService : IChatService
     public async Task<List<ChatResponseDto>> ReceiveUserChatsAsync(string clientId)
     {
         var chats = await _appDbContext.Chats
-            .Where(c => c.Participants.Any(p => p.Id == clientId))
+            .Where(c => c.Participants.Any(p => p.Id == clientId)).Include(chatModel => chatModel.Participants)
             .ToListAsync();
         
         var response = chats.Select(chat => new ChatResponseDto
@@ -29,6 +31,33 @@ public class ChatService : IChatService
         }).ToList();
 
         return response;
+    }
+    
+    public async Task<List<MessageResponseDto>> GetChatMessagesAsync(int chatId)
+    {
+        // Check if the chat exists
+        var chat = await _appDbContext.Chats
+            .Include(c => c.Messages)
+            .FirstOrDefaultAsync(c => c.Id == chatId);
+
+        if (chat == null)
+        {
+            throw new KeyNotFoundException("Chat not found.");
+        }
+
+        // Map messages to DTOs
+        var messages = chat.Messages
+            .Select(m => new MessageResponseDto
+            {
+                MessageId = m.Id,
+                Content = m.Content,
+                SenderId = m.UserId,
+                SentAt = m.SentAt
+            })
+            .OrderBy(m => m.SentAt)
+            .ToList();
+
+        return messages;
     }
 
 }
