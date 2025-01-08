@@ -1,4 +1,5 @@
-﻿using HttpChat.dto;
+﻿using System.Security.Claims;
+using HttpChat.dto;
 using HttpChat.Service.ChatService;
 using Microsoft.AspNetCore.Mvc;
 
@@ -24,6 +25,12 @@ namespace HttpChat.Controllers
                 {
                     Errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage)
                 });
+            }
+            
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized("User ID not found in token.");
             }
 
             _messageService.RegisterUser(request);
@@ -101,12 +108,7 @@ namespace HttpChat.Controllers
                 return "Chat ID cannot be empty.";
             }
 
-            if (!_messageService.IsClientChatSetted(chatId, clientId))
-            {
-                return "Invalid or unregistered Client ID or Chat ID.";
-            }
-
-            return string.Empty;
+            return !_messageService.IsClientChatSetted(chatId, clientId) ? "Invalid or unregistered Client ID or Chat ID." : string.Empty;
         }
     }
 }

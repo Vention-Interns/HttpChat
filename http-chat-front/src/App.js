@@ -1,5 +1,5 @@
 import "./App.css";
-import { useEffect, useState } from "react";
+import {useEffect, useState} from "react";
 import axios from "axios";
 
 function App() {
@@ -13,17 +13,19 @@ function App() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [isAuthenticated, setIsAuthenticated] = useState(!!token);
-
+    const [chats, setChats] = useState([]);
     const handleLogin = async (e) => {
         e.preventDefault();
 
         try {
-            const response = await axios.post("http://localhost:5181/api/Auth/login", { email, password });
-            const { token } = response.data;
+            const response = await axios.post("http://localhost:5181/api/Auth/login", {email, password});
+            const {token} = response.data;
 
             localStorage.setItem("authToken", token);
             setToken(token);
             setIsAuthenticated(true);
+
+            fetchChats(token);
         } catch (error) {
             alert("Login failed! Please check your credentials.");
             console.error("Login error:", error);
@@ -37,6 +39,19 @@ function App() {
         setActiveClientId(null);
         setActiveChatId(null);
         setMessages([]);
+        setChats([]);
+    };
+
+    const fetchChats = async (authToken) => {
+        try {
+            const response = await axios.get("http://localhost:5181/api/chat/chats", {
+                headers: {Authorization: `Bearer ${authToken}`},
+            });
+            setChats(response.data);
+        } catch (error) {
+            console.error("Error fetching chats:", error);
+            alert("Failed to fetch chats.");
+        }
     };
 
     const startChat = async () => {
@@ -51,8 +66,7 @@ function App() {
         try {
             const response = await axios.post(
                 "http://localhost:5181/api/chat/register",
-                { clientId: trimmedClientId, chatId: trimmedChatId },
-                { headers: { Authorization: `Bearer ${token}` } }
+                {headers: {Authorization: `Bearer ${token}`}}
             );
 
             setActiveClientId(trimmedClientId);
@@ -61,18 +75,6 @@ function App() {
         } catch (error) {
             alert("Failed to start chat. Please try again.");
             console.error("Error registering user:", error);
-        }
-    };
-
-    const fetchMessageHistory = async (chatId) => {
-        try {
-            const response = await axios.get(
-                `http://localhost:5181/api/chat/history?chatId=${encodeURIComponent(chatId)}`,
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
-            setMessages(response.data.messages || []);
-        } catch (error) {
-            console.error("Error fetching message history:", error);
         }
     };
 
@@ -91,8 +93,8 @@ function App() {
         try {
             await axios.post(
                 "http://localhost:5181/api/chat/send",
-                { clientId: activeClientId, chatId: activeChatId, content: trimmedMessage },
-                { headers: { Authorization: `Bearer ${token}` } }
+                {clientId: activeClientId, chatId: activeChatId, content: trimmedMessage},
+                {headers: {Authorization: `Bearer ${token}`}}
             );
             setMessageInput("");
         } catch (error) {
@@ -109,7 +111,7 @@ function App() {
         try {
             const response = await axios.get(
                 `http://localhost:5181/api/chat/receive?clientId=${encodeURIComponent(activeClientId)}&chatId=${encodeURIComponent(activeChatId)}`,
-                { headers: { Authorization: `Bearer ${token}` } }
+                {headers: {Authorization: `Bearer ${token}`}}
             );
 
             if (response.data && response.data.messages && response.data.messages.length > 0) {
@@ -121,6 +123,27 @@ function App() {
             setTimeout(receiveMessages, 500);
         }
     };
+
+    const selectChat = (chatId) => {
+        setActiveChatId(chatId);
+        fetchMessageHistory(chatId);
+        startChat(chatId);
+    };
+
+    const fetchMessageHistory = async (chatId) => {
+        try {
+            const response = await axios.get(
+                `http://localhost:5181/api/Chat/history?chatId=${encodeURIComponent(chatId)}`,
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            console.log("response ", response.data);
+
+            setMessages(response.data || []);
+        } catch (error) {
+            console.error("Error fetching message history:", error);
+        }
+    };
+
 
     useEffect(() => {
         if (activeClientId && activeChatId) {
@@ -158,65 +181,66 @@ function App() {
                     </form>
                 </div>
             ) : (
-                <>
-                    {!activeClientId || !activeChatId ? (
-                        <div className="inputContainer">
+                <div className="chatContainer">
+                    {/* Left panel: List of chats */}
+                    <div className="chatListContainer">
+                        <h2>Your Chats</h2>
+                        {chats.length > 0 ? (
+                            chats.map((chat) => (
+                                <div
+                                    key={chat.chatId}
+                                    className={`chatItem ${chat.chatId === activeChatId ? "active" : ""}`}
+                                    onClick={() => selectChat(chat.chatId)}
+                                >
+                                    <h3>{chat.chatName}</h3>
+                                    <p>{chat.numberOfParticipants} participants</p>
+                                </div>
+                            ))
+                        ) : (
+                            <div>No chats available</div>
+                        )}
+                        <button onClick={handleLogout} className="button logoutButton">
+                            Logout
+                        </button>
+                    </div>
 
-                            <input
-                                type="text"
-                                placeholder="Enter your Client ID..."
-                                value={clientIdInput}
-                                onChange={(e) => setClientIdInput(e.target.value)}
-                                className="input"
-                            />
-                            <input
-                                type="text"
-                                placeholder="Enter Chat ID..."
-                                value={chatIdInput}
-                                onChange={(e) => setChatIdInput(e.target.value)}
-                                className="input"
-                            />
-                            <button onClick={startChat} className="button">
-                                Start Chat
-                            </button>
-                            <button onClick={handleLogout} className="button">
-                                Logout
-                            </button>
-                        </div>
-                    ) : (
-                        <>
-                            <div className="message">
-                                Client ID: {activeClientId}, Chat ID: {activeChatId}
+                    {/* Right panel: Chat messages */}
+                    <div className="chatMessagesContainer">
+                        {activeChatId ? (
+                            <>
+                                <div className="chatBox">
+                                    {messages.length > 0 ? (
+                                        messages.map((msg, index) => (
+                                            <div key={index} className="message">
+                                                <strong>{msg.senderId}</strong>: {msg.content}
+                                                <em>({new Date(msg.sentAt).toLocaleString()})</em>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="message">No messages yet...</div>
+                                    )}
+                                </div>
+
+                                <div className="inputContainer">
+                                    <input
+                                        type="text"
+                                        placeholder="Type a message..."
+                                        value={messageInput}
+                                        onChange={(e) => setMessageInput(e.target.value)}
+                                        className="input"
+                                    />
+                                    <button onClick={sendMessage} className="button">
+                                        Send
+                                    </button>
+                                </div>
+                            </>
+                        ) : (
+                            <div className="noChatSelected">
+                                <h2>Select a chat to start messaging</h2>
                             </div>
-                            <div className="chatBox">
-                                {messages.length > 0 ? (
-                                    messages.map((msg, index) => (
-                                        <div key={index} className="message">
-                                            {msg}
-                                        </div>
-                                    ))
-                                ) : (
-                                    <div className="message">No messages yet...</div>
-                                )}
-                            </div>
-                            <div className="inputContainer">
-                                <input
-                                    type="text"
-                                    placeholder="Type a message..."
-                                    value={messageInput}
-                                    onChange={(e) => setMessageInput(e.target.value)}
-                                    className="input"
-                                />
-                                <button onClick={sendMessage} className="button">
-                                    Send
-                                </button>
-                                <button onClick={handleLogout} className="button">
-                                    Logout
-                                </button>
-                            </div>
-                        </>
-                    )}
-                </>
+                        )}
+                    </div>
+                </div>
             )}
         </div>
     );
