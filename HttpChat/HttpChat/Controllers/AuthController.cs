@@ -1,9 +1,3 @@
-
-﻿using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
-using HttpChat.Model;
-using Microsoft.AspNetCore.Identity;
 ﻿using HttpChat.Dtos;
 using HttpChat.Services.AuthService;
 using Microsoft.AspNetCore.Mvc;
@@ -31,12 +25,38 @@ namespace HttpChat.Controllers
             {
                 return Ok(new
                 {
-                    Token = result.Token,
-                    Expiration = result.Expiration
+                    result.Token,
+                    result.Expiration
                 });
             }
 
             return Unauthorized(result.ErrorMessage);
+        }
+
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromBody] RegisterRequestDto dto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(new
+                {
+                    Errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage)
+                });
+            }
+
+            var result = await authService.RegisterAsync(dto);
+
+            if (result.IsSuccess)
+            {
+                return Ok(new
+                {
+                    result.Token,
+                    result.Expiration
+                });
+            }
+
+            return Unauthorized(result.ErrorMessage);
+
         }
     }
 }
