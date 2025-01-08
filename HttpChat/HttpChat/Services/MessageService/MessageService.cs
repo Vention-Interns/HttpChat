@@ -1,5 +1,4 @@
 ﻿using System.Collections.Concurrent;
-using System.Data.Entity.Core.Common.CommandTrees.ExpressionBuilder;
 using HttpChat.dto;
 using HttpChat.Model;
 using HttpChat.persistence;
