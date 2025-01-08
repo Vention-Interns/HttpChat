@@ -10,6 +10,7 @@ namespace HttpChat.Service.ChatService;
 public class MessageService : IMessageService
 {
     private readonly ChatDbContext _appDbContext;
+
     private static readonly ConcurrentDictionary<string, ConcurrentQueue<MessageRequestDto>> _chatMessageQueues =
             new();
     private static readonly ConcurrentDictionary<string, ConcurrentDictionary<string, Queue<string>>>
@@ -22,6 +23,7 @@ public class MessageService : IMessageService
     {
         _appDbContext = appDbContext;
     }
+
     public static ChatDbContext GetMemoryContext()
     {
         var options = new DbContextOptionsBuilder<ChatDbContext>()
@@ -55,7 +57,6 @@ public class MessageService : IMessageService
         _chatClientQueues[request.ChatId].TryAdd(request.ClientId, new Queue<string>());
         _clientLastActive[request.ClientId] = DateTime.UtcNow;
     }
-    
     public Task<bool> IsChatIdValid(string chatId)
     {
         return Task.FromResult(_chatMessageQueues.ContainsKey(chatId));
@@ -103,6 +104,7 @@ public class MessageService : IMessageService
     public bool IsClientChatSetted(string chatId, string clientId)
     {
         return _chatClientQueues.ContainsKey(chatId) && IsChatIdAndClientIdCompatible(chatId, clientId);
+
     }
 
     public async Task<string[]> ReceiveMessageAsync(string chatId, string clientId)
@@ -178,11 +180,13 @@ public class MessageService : IMessageService
             {
                 foreach (var clientId in clientQueues.Keys.ToList())
                 {
+
                     RemoveUser(clientQueues, clientId, chatId);
                 }
 
                 if (clientQueues.IsEmpty)
                 {
+
                     RemoveChat(chatId);
                 }
             }
