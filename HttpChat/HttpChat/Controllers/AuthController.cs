@@ -1,3 +1,9 @@
+
+﻿using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
+using HttpChat.Model;
+using Microsoft.AspNetCore.Identity;
 ﻿using HttpChat.Dtos;
 using HttpChat.Services.AuthService;
 using Microsoft.AspNetCore.Mvc;
